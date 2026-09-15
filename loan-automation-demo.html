@@ -1,0 +1,535 @@
+<title>LoanFlow Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a10; --surface:#17171f; --surface-2:#1e1e29; --surface-3:#242433; --sidebar:#111117; --border:#2b2b38;
+    --text:#f2f2f6; --text-muted:#9d9cae; --text-faint:#6d6c80;
+    --accent:#8d7cf6; --accent-soft:#8d7cf61a;
+    --danger:#ff5c72; --danger-soft:#ff5c721a;
+    --warning:#f0a63d; --warning-soft:#f0a63d24;
+    --good:#4ade80; --good-soft:#4ade8022;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{background:var(--bg);color:var(--text);font-family:'Manrope',system-ui,-apple-system,'Segoe UI',sans-serif;margin:0;}
+  .mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace;}
+
+  .app{display:flex;min-height:100vh;}
+  .sidebar{width:236px;flex-shrink:0;background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:18px 12px;gap:18px;}
+  .brand{display:flex;align-items:center;gap:9px;padding:4px 8px 10px;border-bottom:1px solid var(--border);margin-bottom:2px;}
+  .brand-mark{width:28px;height:28px;border-radius:8px;background:var(--accent);display:grid;place-items:center;flex-shrink:0;color:#12102a;font-weight:800;font-size:13px;}
+  .brand-name{font-weight:800;font-size:13.5px;line-height:1.2;}
+  .brand-sub{font-size:10.5px;color:var(--text-faint);}
+  .nav-section{display:flex;flex-direction:column;gap:2px;}
+  .nav-heading{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint);padding:6px 10px 2px;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;font-size:13px;font-weight:600;color:var(--text-muted);cursor:pointer;border:1px solid transparent;transition:all .12s ease;}
+  .nav-item:hover{background:var(--surface-2);color:var(--text);}
+  .nav-item.active{background:var(--accent-soft);color:var(--accent);border-color:#8d7cf640;}
+  .sidebar-foot{margin-top:auto;padding:10px 8px 2px;border-top:1px solid var(--border);font-size:11px;color:var(--text-faint);line-height:1.5;}
+
+  .main{flex:1;min-width:0;display:flex;flex-direction:column;}
+  .topbar{display:flex;align-items:center;gap:14px;padding:16px 26px;border-bottom:1px solid var(--border);flex-wrap:wrap;position:sticky;top:0;background:var(--bg);z-index:5;}
+  .topbar h1{font-size:18px;font-weight:800;margin:0;flex-shrink:0;}
+  .topbar-spacer{flex:1;}
+  .demo-pill{display:inline-flex;align-items:center;gap:6px;background:var(--warning-soft);color:var(--warning);border:1px solid #f0a63d40;font-size:11px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:5px 11px;border-radius:999px;white-space:nowrap;}
+  .demo-pill::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--warning);}
+  .live-pill{display:inline-flex;align-items:center;gap:7px;color:var(--text-muted);font-size:11px;font-weight:600;border:1px solid var(--border);padding:5px 11px;border-radius:999px;white-space:nowrap;}
+  .live-dot{width:6px;height:6px;border-radius:50%;background:var(--good);flex-shrink:0;box-shadow:0 0 0 0 rgba(74,222,128,.5);animation:pulse 2s infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(74,222,128,.5);}70%{box-shadow:0 0 0 6px rgba(74,222,128,0);}100%{box-shadow:0 0 0 0 rgba(74,222,128,0);}}
+  @media (prefers-reduced-motion: reduce){.live-dot{animation:none;} .spinner{animation:none;border-top-color:var(--border);}}
+  .user-chip{display:flex;align-items:center;gap:8px;padding:4px 10px 4px 4px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border);}
+  .user-avatar{width:26px;height:26px;border-radius:50%;background:var(--accent);color:#12102a;display:grid;place-items:center;font-size:11px;font-weight:800;}
+  .user-name{font-size:12.5px;font-weight:700;}
+  .user-role{font-size:10px;color:var(--text-faint);}
+
+  .content{padding:24px 26px 60px;display:flex;flex-direction:column;gap:20px;}
+  .view{display:none;flex-direction:column;gap:20px;}
+  .view.active{display:flex;}
+  .page-intro{color:var(--text-muted);font-size:13.5px;max-width:72ch;line-height:1.5;margin:-6px 0 2px;}
+
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:18px;}
+  .panel-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:20px;}
+  @media (max-width:900px){.panel-grid{grid-template-columns:1fr;}}
+  .section-heading{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);flex-wrap:wrap;}
+  .section-heading .bar{width:3px;height:14px;border-radius:2px;background:var(--accent);flex-shrink:0;}
+  .hint{font-size:11.5px;font-weight:500;text-transform:none;letter-spacing:0;color:var(--text-faint);margin-left:auto;}
+
+  .scope-bar{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:13px 18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+  .scope-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint);}
+  .pill-btn{background:var(--surface-2);border:1px solid var(--border);color:var(--text-muted);font-family:inherit;font-size:12.5px;font-weight:700;padding:7px 14px;border-radius:999px;cursor:pointer;transition:all .15s ease;}
+  .pill-btn:hover{color:var(--text);border-color:#3a3a4a;}
+  .pill-btn.active{background:var(--accent-soft);color:var(--accent);border-color:#8d7cf655;}
+  .scope-period{margin-left:auto;color:var(--text-muted);font-size:12.5px;font-weight:600;}
+
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  @media (max-width:760px){.kpi-grid{grid-template-columns:repeat(2,1fr);}}
+  .kpi-card{background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:14px 15px;display:flex;flex-direction:column;gap:6px;transition:transform .15s ease,border-color .15s ease;}
+  .kpi-card:hover{transform:translateY(-2px);border-color:#3a3a4a;}
+  .kpi-label{font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text-faint);}
+  .kpi-value{font-family:'JetBrains Mono';font-size:23px;font-weight:700;font-variant-numeric:tabular-nums;}
+
+  .table-scroll{overflow-x:auto;border:1px solid var(--border);border-radius:10px;}
+  table{width:100%;border-collapse:collapse;min-width:560px;}
+  thead th{text-align:left;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-faint);background:var(--surface-2);padding:10px 14px;border-bottom:1px solid var(--border);white-space:nowrap;}
+  tbody td{padding:10px 14px;font-size:13.5px;border-bottom:1px solid var(--border);color:var(--text);white-space:nowrap;}
+  tbody tr:hover{background:var(--surface-2);}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody td.num{font-family:'JetBrains Mono';font-variant-numeric:tabular-nums;text-align:right;}
+  .task-row{cursor:pointer;}
+  .status-chip{font-size:10.5px;font-weight:700;letter-spacing:.02em;padding:3px 9px;border-radius:6px;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;}
+  .status-chip::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;}
+  .status-good{background:var(--good-soft);color:var(--good);}
+  .status-warn{background:var(--warning-soft);color:var(--warning);}
+  .status-bad{background:var(--danger-soft);color:var(--danger);}
+  .sheet-chip{font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;background:var(--surface-3);color:var(--text-muted);display:inline-flex;align-items:center;gap:5px;}
+
+  /* upload / intake */
+  .doc-tabs{display:flex;gap:8px;flex-wrap:wrap;}
+  .upload-zone{border:2px dashed var(--border);border-radius:14px;padding:30px 20px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;background:var(--surface-2);}
+  .uz-icon{width:44px;height:44px;border-radius:12px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;}
+  .uz-file{font-family:'JetBrains Mono';font-size:12px;color:var(--text);background:var(--surface-3);padding:7px 14px;border-radius:8px;margin-top:6px;display:inline-flex;align-items:center;gap:8px;}
+  .spinner{width:15px;height:15px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;flex-shrink:0;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .extract-status{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--text-muted);font-weight:600;}
+  .detail-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  @media (max-width:760px){.detail-grid{grid-template-columns:repeat(2,1fr);}}
+  .detail-item{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;}
+  .detail-item .k{font-size:10px;color:var(--text-faint);font-weight:700;text-transform:uppercase;letter-spacing:.05em;}
+  .detail-item .v{font-size:13.5px;font-weight:700;margin-top:3px;}
+  .conf-badge{display:inline-flex;align-items:center;gap:8px;background:var(--good-soft);color:var(--good);font-weight:700;font-size:12.5px;padding:6px 12px;border-radius:999px;}
+
+  /* loan detail params */
+  .param-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  @media (max-width:760px){.param-grid{grid-template-columns:1fr 1fr;}}
+  .param-item label{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-faint);display:block;margin-bottom:6px;}
+  .field-input{width:100%;background:var(--surface-2);border:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono';font-size:13.5px;padding:9px 10px;border-radius:8px;}
+  .field-input:focus{outline:none;border-color:var(--accent);}
+  .primary-btn{background:var(--accent);color:#12102a;border:none;font-family:inherit;font-weight:800;font-size:13px;padding:10px 18px;border-radius:10px;cursor:pointer;white-space:nowrap;}
+  .primary-btn:hover{filter:brightness(1.08);}
+
+  .stat-strip{display:flex;gap:22px;flex-wrap:wrap;}
+  .stat-mini{display:flex;flex-direction:column;gap:3px;}
+  .stat-mini .v{font-family:'JetBrains Mono';font-size:20px;font-weight:700;}
+  .stat-mini .k{font-size:11px;color:var(--text-faint);font-weight:700;text-transform:uppercase;letter-spacing:.05em;}
+
+  .empty-state{color:var(--text-faint);font-size:13px;font-style:italic;padding:14px 4px;}
+  footer.note{color:var(--text-faint);font-size:12px;line-height:1.6;text-align:center;padding:10px 12px 0;max-width:66ch;margin:0 auto;}
+
+  @media (max-width:860px){
+    .app{flex-direction:column;}
+    .sidebar{width:100%;flex-direction:row;flex-wrap:wrap;padding:12px;}
+    .brand{border-bottom:none;margin-bottom:0;}
+    .nav-section{flex-direction:row;flex-wrap:wrap;}
+    .sidebar-foot{display:none;}
+  }
+</style>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">L</div>
+      <div><div class="brand-name">LoanFlow</div><div class="brand-sub">Larkspur Advisory Group</div></div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-heading">Automation</div>
+      <div class="nav-item active" data-view="intake" onclick="switchView('intake',this)">Document Intake</div>
+      <div class="nav-item" data-view="allloans" onclick="switchView('allloans',this)">All Loans</div>
+      <div class="nav-item" data-view="loandetail" onclick="switchView('loandetail',this)">Loan Detail</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-heading">Accounting</div>
+      <div class="nav-item" data-view="recon" onclick="switchView('recon',this)">Bank Reconciliation</div>
+      <div class="nav-item" data-view="journal" onclick="switchView('journal',this)">Journal Entries</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-heading">Organization</div>
+      <div class="nav-item" data-view="clients" onclick="switchView('clients',this)">Clients</div>
+    </div>
+    <div class="sidebar-foot">Sample data — portfolio demo.<br>Every field, button and table is live.</div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <h1 id="viewTitle">Document Intake</h1>
+      <div class="topbar-spacer"></div>
+      <span class="demo-pill">Sample data</span>
+      <span class="live-pill"><span class="live-dot"></span><span id="syncTimer">synced 0s ago</span></span>
+      <div class="user-chip"><div class="user-avatar">AR</div><div><div class="user-name">A. Rivera</div><div class="user-role">Founder · Superadmin</div></div></div>
+    </div>
+
+    <div class="content">
+
+      <!-- DOCUMENT INTAKE -->
+      <section class="view active" data-view="intake">
+        <p class="page-intro">Upload any finance document and Gemini reads it — agreements, bank statements, settlement statements — and turns it into a ready-to-review record. No manual data entry.</p>
+        <section class="panel">
+          <div class="section-heading"><span class="bar"></span>Document type</div>
+          <div class="doc-tabs">
+            <button class="pill-btn active" data-doc="agreement" onclick="selectDocType('agreement',this)">Finance Agreement</button>
+            <button class="pill-btn" data-doc="bank" onclick="selectDocType('bank',this)">Bank Statement</button>
+            <button class="pill-btn" data-doc="settlement" onclick="selectDocType('settlement',this)">Settlement Statement</button>
+          </div>
+          <div class="upload-zone" id="uploadZone">
+            <div class="uz-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 4v11m0-11 4 4m-4-4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div style="font-weight:700;font-size:14px;">Drop a file here, or</div>
+            <button class="pill-btn active" onclick="pickSample()">Use sample document</button>
+            <div id="uzFileRow"></div>
+          </div>
+          <div id="extractArea"></div>
+        </section>
+      </section>
+
+      <!-- ALL LOANS -->
+      <section class="view" data-view="allloans">
+        <div class="kpi-grid">
+          <div class="kpi-card"><div class="kpi-label">Active loans</div><div class="kpi-value">5</div></div>
+          <div class="kpi-card"><div class="kpi-label">Total principal</div><div class="kpi-value">$540.0k</div></div>
+          <div class="kpi-card"><div class="kpi-label">Avg interest rate</div><div class="kpi-value">7.6%</div></div>
+          <div class="kpi-card"><div class="kpi-label">In arrears</div><div class="kpi-value" style="color:var(--danger);">1</div></div>
+        </div>
+        <section class="panel">
+          <div class="section-heading"><span class="bar"></span>All loans<span class="hint">click a row to open the schedule</span></div>
+          <div class="table-scroll"><table><thead><tr><th>Client</th><th>Loan type</th><th>Principal</th><th>Rate</th><th>Term</th><th>Status</th></tr></thead><tbody id="loansTable"></tbody></table></div>
+        </section>
+      </section>
+
+      <!-- LOAN DETAIL -->
+      <section class="view" data-view="loandetail">
+        <section class="panel">
+          <div class="section-heading"><span class="bar"></span><span id="ldClient">Loan detail</span><span class="hint" id="ldStatus"></span></div>
+          <div class="param-grid">
+            <div class="param-item"><label>Principal ($)</label><input class="field-input" id="ldPrincipal" type="number" step="1000"></div>
+            <div class="param-item"><label>Rate (% p.a.)</label><input class="field-input" id="ldRate" type="number" step="0.1"></div>
+            <div class="param-item"><label>Term (months)</label><input class="field-input" id="ldTerm" type="number" step="1"></div>
+            <div class="param-item"><label>Start date</label><input class="field-input" id="ldStart" type="date"></div>
+          </div>
+          <button class="primary-btn" style="align-self:flex-start;" onclick="recalcLoan()">Recalculate schedule</button>
+          <div class="stat-strip">
+            <div class="stat-mini"><span class="v" id="ldMonthly">—</span><span class="k">Monthly payment</span></div>
+            <div class="stat-mini"><span class="v" id="ldTotalInterest">—</span><span class="k">Total interest</span></div>
+            <div class="stat-mini"><span class="v" id="ldTotalRepay">—</span><span class="k">Total repayment</span></div>
+            <div class="stat-mini"><span class="v" id="ldPayoff">—</span><span class="k">Payoff date</span></div>
+          </div>
+        </section>
+        <div class="panel-grid">
+          <section class="panel">
+            <div class="section-heading"><span class="bar"></span>Balance over time</div>
+            <div id="ldChart"></div>
+          </section>
+          <section class="panel">
+            <div class="section-heading"><span class="bar"></span>Principal vs interest</div>
+            <div id="ldSplit" style="display:flex;flex-direction:column;gap:12px;justify-content:center;height:100%;"></div>
+          </section>
+        </div>
+        <section class="panel">
+          <div class="section-heading"><span class="bar"></span>Amortization schedule<span class="hint" id="ldRowCount"></span></div>
+          <div class="table-scroll"><table><thead><tr><th>#</th><th>Date</th><th>Payment</th><th>Principal</th><th>Interest</th><th>Balance</th></tr></thead><tbody id="scheduleTable"></tbody></table></div>
+        </section>
+      </section>
+
+      <!-- BANK RECONCILIATION -->
+      <section class="view" data-view="recon">
+        <p class="page-intro">Matches every expected loan payment against the client's actual bank feed, and flags anything that doesn't line up.</p>
+        <div class="scope-bar">
+          <span class="scope-label">Loan</span>
+          <span id="reconLoanTabs" style="display:contents;"></span>
+          <span class="scope-period"><button class="pill-btn active" onclick="runRecon()">↻ Run reconciliation</button></span>
+        </div>
+        <div class="kpi-grid">
+          <div class="kpi-card"><div class="kpi-label">Matched</div><div class="kpi-value" style="color:var(--good);" id="rcMatched">—</div></div>
+          <div class="kpi-card"><div class="kpi-label">Mismatched</div><div class="kpi-value" style="color:var(--danger);" id="rcMismatch">—</div></div>
+          <div class="kpi-card"><div class="kpi-label">Missing</div><div class="kpi-value" style="color:var(--warning);" id="rcMissing">—</div></div>
+          <div class="kpi-card"><div class="kpi-label">Match rate</div><div class="kpi-value" id="rcRate">—</div></div>
+        </div>
+        <section class="panel">
+          <div class="section-heading"><span class="bar"></span>Transactions</div>
+          <div class="table-scroll"><table><thead><tr><th>Date</th><th>Description</th><th>Expected</th><th>Bank</th><th>Status</th></tr></thead><tbody id="reconTable"></tbody></table></div>
+        </section>
+      </section>
+
+      <!-- JOURNAL ENTRIES -->
+      <section class="view" data-view="journal">
+        <p class="page-intro">Generates the debit/credit entries for a financial year straight from the amortization schedule — ready to post.</p>
+        <div class="scope-bar">
+          <span class="scope-label">Loan</span>
+          <span id="jeLoanTabs" style="display:contents;"></span>
+          <span class="scope-label" style="margin-left:8px;">Year</span>
+          <button class="pill-btn active" data-fy="2025" onclick="selectFY('2025',this)">FY2025 (Apr–Mar)</button>
+          <button class="pill-btn" data-fy="2026" onclick="selectFY('2026',this)">FY2026 (Apr–Mar)</button>
+          <span class="scope-period"><button class="pill-btn active" onclick="generateJE()">Generate entries</button> <button class="pill-btn" title="Exports in the live app">⇩ .xlsx</button></span>
+        </div>
+        <section class="panel">
+          <div class="section-heading"><span class="bar"></span>Journal entries<span class="hint" id="jeCount"></span></div>
+          <div class="table-scroll"><table><thead><tr><th>Date</th><th>Account</th><th>Debit</th><th>Credit</th><th>Memo</th></tr></thead><tbody id="jeTable"></tbody></table></div>
+        </section>
+      </section>
+
+      <!-- CLIENTS -->
+      <section class="view" data-view="clients">
+        <p class="page-intro">Every client's loan data lives in that client's own Google Sheet — never a shared central sheet.</p>
+        <section class="panel">
+          <div class="section-heading"><span class="bar"></span>Clients</div>
+          <div class="table-scroll"><table><thead><tr><th>Client</th><th>Active loans</th><th>Total principal</th><th>Data store</th></tr></thead><tbody id="clientsTable"></tbody></table></div>
+        </section>
+      </section>
+
+      <footer class="note">Sanitized recreation for portfolio use — company name, clients and figures are fictional. The amortization engine, reconciliation matching and journal-entry generation run for real in your browser (try editing the loan parameters) — only the AI document extraction is simulated.</footer>
+    </div>
+  </div>
+</div>
+
+<script>
+  var CLIENTS = ['Meridian Retail','Northwind Rentals','Harbor Logistics Ltd','BrightPath Ventures','Cascade Properties'];
+
+  var LOANS = [
+    {id:0, client:'Meridian Retail', type:'Vehicle Finance', principal:48000, rate:7.9, term:60, start:'2025-03-01', status:'good'},
+    {id:1, client:'Northwind Rentals', type:'Property Loan', principal:210000, rate:6.2, term:240, start:'2024-11-01', status:'good'},
+    {id:2, client:'Harbor Logistics Ltd', type:'Equipment Finance', principal:85000, rate:8.4, term:48, start:'2025-01-15', status:'bad'},
+    {id:3, client:'BrightPath Ventures', type:'Working Capital Loan', principal:32000, rate:9.1, term:36, start:'2025-06-01', status:'good'},
+    {id:4, client:'Cascade Properties', type:'Property Loan', principal:165000, rate:6.5, term:180, start:'2024-08-01', status:'good'}
+  ];
+  var STATUS_LABEL = {good:'Current', warn:'Review', bad:'Arrears'};
+
+  function money(n){ return '$' + Math.round(n).toLocaleString('en-US'); }
+  function moneyK(n){ return '$' + (n/1000).toFixed(1) + 'k'; }
+
+  /* ---------- view switching ---------- */
+  var VIEW_TITLES = {intake:'Document Intake', allloans:'All Loans', loandetail:'Loan Detail', recon:'Bank Reconciliation', journal:'Journal Entries', clients:'Clients'};
+  function switchView(key, btn){
+    document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.toggle('active', n === btn); });
+    document.querySelectorAll('.view').forEach(function(v){ v.classList.toggle('active', v.dataset.view === key); });
+    document.getElementById('viewTitle').textContent = VIEW_TITLES[key];
+  }
+  function openNav(key){ switchView(key, document.querySelector('.nav-item[data-view="'+key+'"]')); }
+
+  /* ---------- Document Intake ---------- */
+  var DOC_SAMPLES = {
+    agreement:{
+      file:'BrightPath_FinanceAgreement.pdf', badge:'Finance Agreement', conf:97,
+      fields:[['Borrower','BrightPath Ventures'],['Lender','Pacific Business Finance Ltd'],['Principal','$32,000'],['Interest rate','9.1% p.a.'],['Term','36 months'],['Start date','1 Jun 2025']]
+    },
+    bank:{
+      file:'Cascade_BankStatement_Jun26.pdf', badge:'Bank Statement', conf:94,
+      fields:[['Account holder','Cascade Properties'],['Statement period','1–30 Jun 2026'],['Opening balance','$18,240.50'],['Closing balance','$16,890.10'],['Loan payments matched','3 of 3'],['Unmatched transactions','0']]
+    },
+    settlement:{
+      file:'Northwind_SettlementStatement.pdf', badge:'Settlement Statement', conf:98,
+      fields:[['Property','14 Fernside Road, Northwind'],['Settlement date','1 Nov 2024'],['Purchase price','$260,000'],['Loan amount','$210,000'],['Deposit','$50,000'],['Adjustments','$1,140.20']]
+    }
+  };
+  window.docType = 'agreement';
+  function selectDocType(key, btn){
+    window.docType = key;
+    document.querySelectorAll('[data-doc]').forEach(function(b){ b.classList.toggle('active', b===btn); });
+    document.getElementById('uzFileRow').innerHTML = '';
+    document.getElementById('extractArea').innerHTML = '';
+  }
+  function pickSample(){
+    var d = DOC_SAMPLES[window.docType];
+    document.getElementById('uzFileRow').innerHTML = '<div class="uz-file">📄 ' + d.file + ' <button class="pill-btn active" style="padding:5px 12px;font-size:11.5px;" onclick="runExtraction()">Extract with AI</button></div>';
+    document.getElementById('extractArea').innerHTML = '';
+  }
+  function runExtraction(){
+    document.getElementById('extractArea').innerHTML = '<div class="extract-status"><span class="spinner"></span>Reading document with Gemini…</div>';
+    setTimeout(function(){ renderExtraction(window.docType); }, 1100);
+  }
+  function renderExtraction(key){
+    var d = DOC_SAMPLES[key];
+    var grid = d.fields.map(function(f){ return '<div class="detail-item"><div class="k">'+f[0]+'</div><div class="v">'+f[1]+'</div></div>'; }).join('');
+    document.getElementById('extractArea').innerHTML =
+      '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:2px;">'+
+        '<span class="conf-badge">✓ '+d.conf+'% extraction confidence</span>'+
+        '<span class="status-chip status-good" style="background:var(--accent-soft);color:var(--accent);">Detected: '+d.badge+'</span>'+
+      '</div>'+
+      '<div class="detail-grid">'+grid+'</div>'+
+      '<button class="primary-btn" style="align-self:flex-start;margin-top:4px;" onclick="saveToClientFile(\''+key+'\')">Save to client file</button>'+
+      '<div id="saveMsg"></div>';
+  }
+  function saveToClientFile(key){
+    var d = DOC_SAMPLES[key];
+    document.getElementById('saveMsg').innerHTML = '<div class="status-chip status-good" style="margin-top:10px;">✓ Saved to '+ (d.fields[0][1]) +'’s Google Sheet</div>';
+  }
+
+  /* ---------- amortization engine ---------- */
+  function computeSchedule(principal, annualRatePct, termMonths, startDateStr){
+    var r = (annualRatePct/100)/12;
+    var n = termMonths;
+    var M = r === 0 ? principal/n : principal * r * Math.pow(1+r,n) / (Math.pow(1+r,n)-1);
+    var rows = [], balance = principal, totalInterest = 0;
+    var start = new Date(startDateStr+'T00:00:00');
+    for(var i=1;i<=n;i++){
+      var interest = balance * r;
+      var principalPaid = Math.min(balance, M - interest);
+      balance = Math.max(0, balance - principalPaid);
+      totalInterest += interest;
+      var d = new Date(start.getFullYear(), start.getMonth()+i-1, start.getDate());
+      rows.push({n:i, date:d, payment:M, principal:principalPaid, interest:interest, balance:balance});
+    }
+    return {monthly:M, rows:rows, totalInterest:totalInterest, totalRepay:principal+totalInterest, payoff:rows[rows.length-1].date};
+  }
+  function fmtDate(d){ return d.toLocaleDateString('en-NZ',{day:'2-digit',month:'short',year:'numeric'}); }
+
+  window.currentLoanId = 0;
+  window.currentSchedule = null;
+
+  function openLoan(id){
+    window.currentLoanId = id;
+    var loan = LOANS[id];
+    document.getElementById('ldClient').textContent = loan.client + ' — ' + loan.type;
+    document.getElementById('ldStatus').innerHTML = '<span class="status-chip status-'+loan.status+'">'+STATUS_LABEL[loan.status]+'</span>';
+    document.getElementById('ldPrincipal').value = loan.principal;
+    document.getElementById('ldRate').value = loan.rate;
+    document.getElementById('ldTerm').value = loan.term;
+    document.getElementById('ldStart').value = loan.start;
+    recalcLoan();
+    openNav('loandetail');
+  }
+  function recalcLoan(){
+    var p = parseFloat(document.getElementById('ldPrincipal').value) || 0;
+    var r = parseFloat(document.getElementById('ldRate').value) || 0;
+    var t = parseInt(document.getElementById('ldTerm').value) || 1;
+    var start = document.getElementById('ldStart').value || '2025-01-01';
+    var res = computeSchedule(p, r, t, start);
+    window.currentSchedule = res;
+    document.getElementById('ldMonthly').textContent = money(res.monthly);
+    document.getElementById('ldTotalInterest').textContent = money(res.totalInterest);
+    document.getElementById('ldTotalRepay').textContent = money(res.totalRepay);
+    document.getElementById('ldPayoff').textContent = fmtDate(res.payoff);
+    renderScheduleTable(res.rows);
+    renderBalanceChart(res.rows, p);
+    renderSplit(p, res.totalInterest);
+  }
+  function renderScheduleTable(rows){
+    document.getElementById('ldRowCount').textContent = rows.length + ' payments';
+    var shown = rows.slice(0, 24);
+    document.getElementById('scheduleTable').innerHTML = shown.map(function(r){
+      return '<tr><td class="mono">'+r.n+'</td><td>'+fmtDate(r.date)+'</td><td class="num">'+money(r.payment)+'</td><td class="num">'+money(r.principal)+'</td><td class="num">'+money(r.interest)+'</td><td class="num">'+money(r.balance)+'</td></tr>';
+    }).join('') + (rows.length>24 ? '<tr><td colspan="6" class="empty-state">+ '+(rows.length-24)+' more payments through '+fmtDate(rows[rows.length-1].date)+'</td></tr>' : '');
+  }
+  function renderBalanceChart(rows, principal){
+    var W=560,H=160,PAD=12;
+    var step = Math.max(1, Math.floor(rows.length/40));
+    var pts = [];
+    for(var i=0;i<rows.length;i+=step){ pts.push(rows[i].balance); }
+    pts.push(rows[rows.length-1].balance);
+    var max = principal*1.05;
+    var stepX = W/(pts.length-1||1);
+    var coords = pts.map(function(v,i){ return [i*stepX, PAD + (H-PAD)*(1 - v/max)]; });
+    var d = 'M'+coords.map(function(p){return p[0].toFixed(1)+','+p[1].toFixed(1);}).join(' L');
+    var area = d+' L'+coords[coords.length-1][0].toFixed(1)+','+H+' L0,'+H+' Z';
+    document.getElementById('ldChart').innerHTML = '<svg viewBox="0 0 '+W+' '+(H+8)+'" style="width:100%;height:auto;display:block;">'+
+      '<line x1="0" y1="'+H+'" x2="'+W+'" y2="'+H+'" stroke="#2b2b38" stroke-width="1"/>'+
+      '<path d="'+area+'" fill="var(--accent)" opacity="0.14"/>'+
+      '<path d="'+d+'" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'+
+      '<circle cx="'+coords[coords.length-1][0]+'" cy="'+coords[coords.length-1][1]+'" r="3.5" fill="var(--accent)"/>'+
+      '</svg>';
+  }
+  function renderSplit(principal, totalInterest){
+    var total = principal + totalInterest;
+    var pPct = (principal/total*100).toFixed(1), iPct = (totalInterest/total*100).toFixed(1);
+    document.getElementById('ldSplit').innerHTML =
+      '<div class="mix-row" style="display:flex;align-items:center;gap:10px;"><span style="width:70px;font-size:12.5px;color:var(--text-muted);font-weight:600;">Principal</span><div style="flex:1;height:10px;border-radius:6px;background:var(--surface-3);overflow:hidden;"><div style="height:100%;border-radius:6px;width:'+pPct+'%;background:var(--accent);"></div></div><span style="width:52px;text-align:right;font-family:JetBrains Mono;font-size:12.5px;font-weight:700;">'+pPct+'%</span></div>'+
+      '<div class="mix-row" style="display:flex;align-items:center;gap:10px;"><span style="width:70px;font-size:12.5px;color:var(--text-muted);font-weight:600;">Interest</span><div style="flex:1;height:10px;border-radius:6px;background:var(--surface-3);overflow:hidden;"><div style="height:100%;border-radius:6px;width:'+iPct+'%;background:var(--warning);"></div></div><span style="width:52px;text-align:right;font-family:JetBrains Mono;font-size:12.5px;font-weight:700;">'+iPct+'%</span></div>';
+  }
+
+  /* ---------- All Loans ---------- */
+  document.getElementById('loansTable').innerHTML = LOANS.map(function(l){
+    return '<tr class="task-row" onclick="openLoan('+l.id+')"><td>'+l.client+'</td><td>'+l.type+'</td><td class="num">'+money(l.principal)+'</td><td class="num">'+l.rate+'%</td><td class="num">'+l.term+' mo</td><td><span class="status-chip status-'+l.status+'">'+STATUS_LABEL[l.status]+'</span></td></tr>';
+  }).join('');
+
+  /* ---------- Bank Reconciliation ---------- */
+  var RECON_DATA = {
+    0:[{date:'01 Apr 2026',desc:'Loan repayment',expected:964,bank:964,status:'good'},{date:'01 May 2026',desc:'Loan repayment',expected:964,bank:964,status:'good'},{date:'01 Jun 2026',desc:'Loan repayment',expected:964,bank:964,status:'good'}],
+    1:[{date:'01 Apr 2026',desc:'Loan repayment',expected:1512,bank:1512,status:'good'},{date:'01 May 2026',desc:'Loan repayment',expected:1512,bank:1512,status:'good'},{date:'01 Jun 2026',desc:'Loan repayment',expected:1512,bank:1490,status:'bad'}],
+    2:[{date:'01 Apr 2026',desc:'Loan repayment',expected:2091,bank:2091,status:'good'},{date:'01 May 2026',desc:'Loan repayment',expected:2091,bank:null,status:'warn'},{date:'01 Jun 2026',desc:'Loan repayment',expected:2091,bank:1950,status:'bad'}],
+    3:[{date:'01 Apr 2026',desc:'Loan repayment',expected:1018,bank:1018,status:'good'},{date:'01 May 2026',desc:'Loan repayment',expected:1018,bank:1018,status:'good'},{date:'01 Jun 2026',desc:'Loan repayment',expected:1018,bank:1018,status:'good'}],
+    4:[{date:'01 Apr 2026',desc:'Loan repayment',expected:1437,bank:1437,status:'good'},{date:'01 May 2026',desc:'Loan repayment',expected:1437,bank:1437,status:'good'},{date:'01 Jun 2026',desc:'Loan repayment',expected:1437,bank:null,status:'warn'}]
+  };
+  window.reconLoanId = 2;
+  function renderReconTabs(){
+    document.getElementById('reconLoanTabs').innerHTML = LOANS.map(function(l){
+      return '<button class="pill-btn '+(l.id===window.reconLoanId?'active':'')+'" onclick="selectReconLoan('+l.id+',this)">'+l.client+'</button>';
+    }).join('');
+    document.getElementById('jeLoanTabs').innerHTML = LOANS.map(function(l){
+      return '<button class="pill-btn '+(l.id===window.jeLoanId?'active':'')+'" onclick="selectJELoan('+l.id+',this)">'+l.client+'</button>';
+    }).join('');
+  }
+  function selectReconLoan(id, btn){
+    window.reconLoanId = id;
+    document.querySelectorAll('#reconLoanTabs .pill-btn').forEach(function(b){ b.classList.remove('active'); });
+    if(btn) btn.classList.add('active');
+    runRecon();
+  }
+  function runRecon(){
+    var rows = RECON_DATA[window.reconLoanId] || [];
+    var matched = rows.filter(function(r){return r.status==='good';}).length;
+    var mismatch = rows.filter(function(r){return r.status==='bad';}).length;
+    var missing = rows.filter(function(r){return r.status==='warn';}).length;
+    document.getElementById('rcMatched').textContent = matched;
+    document.getElementById('rcMismatch').textContent = mismatch;
+    document.getElementById('rcMissing').textContent = missing;
+    document.getElementById('rcRate').textContent = rows.length ? Math.round(matched/rows.length*100)+'%' : '—';
+    var label = {good:'Matched', bad:'Mismatch', warn:'Missing'};
+    document.getElementById('reconTable').innerHTML = rows.map(function(r){
+      return '<tr><td>'+r.date+'</td><td>'+r.desc+'</td><td class="num">'+money(r.expected)+'</td><td class="num">'+(r.bank===null?'—':money(r.bank))+'</td><td><span class="status-chip status-'+r.status+'">'+label[r.status]+'</span></td></tr>';
+    }).join('');
+  }
+
+  /* ---------- Journal Entries ---------- */
+  window.jeLoanId = 0;
+  window.jeFY = '2025';
+  function selectJELoan(id, btn){
+    window.jeLoanId = id;
+    document.querySelectorAll('#jeLoanTabs .pill-btn').forEach(function(b){ b.classList.remove('active'); });
+    if(btn) btn.classList.add('active');
+  }
+  function selectFY(fy, btn){
+    window.jeFY = fy;
+    document.querySelectorAll('[data-fy]').forEach(function(b){ b.classList.toggle('active', b===btn); });
+  }
+  function generateJE(){
+    var loan = LOANS[window.jeLoanId];
+    var res = computeSchedule(loan.principal, loan.rate, loan.term, loan.start);
+    var fyStart = new Date(window.jeFY==='2025' ? '2024-04-01' : '2025-04-01');
+    var fyEnd = new Date(window.jeFY==='2025' ? '2025-03-31' : '2026-03-31');
+    var inFY = res.rows.filter(function(r){ return r.date >= fyStart && r.date <= fyEnd; });
+    var rowsHtml = '', totalDebitInt=0, totalDebitPrin=0;
+    inFY.forEach(function(r){
+      var d = fmtDate(r.date);
+      rowsHtml += '<tr><td>'+d+'</td><td>Interest Expense</td><td class="num">'+money(r.interest)+'</td><td class="num">—</td><td>'+loan.client+' — interest, period '+r.n+'</td></tr>';
+      rowsHtml += '<tr><td>'+d+'</td><td>Loan Payable</td><td class="num">'+money(r.principal)+'</td><td class="num">—</td><td>'+loan.client+' — principal, period '+r.n+'</td></tr>';
+      rowsHtml += '<tr><td>'+d+'</td><td>Bank</td><td class="num">—</td><td class="num">'+money(r.payment)+'</td><td>'+loan.client+' — repayment, period '+r.n+'</td></tr>';
+      totalDebitInt += r.interest; totalDebitPrin += r.principal;
+    });
+    if(inFY.length){
+      rowsHtml += '<tr style="font-weight:800;"><td colspan="2">Totals</td><td class="num">'+money(totalDebitInt+totalDebitPrin)+'</td><td class="num">'+money(totalDebitInt+totalDebitPrin)+'</td><td></td></tr>';
+    }
+    document.getElementById('jeTable').innerHTML = inFY.length ? rowsHtml : '<tr><td colspan="5" class="empty-state">No scheduled payments fall inside FY'+window.jeFY+' for this loan.</td></tr>';
+    document.getElementById('jeCount').textContent = inFY.length*3 + ' lines · FY'+window.jeFY;
+  }
+
+  /* ---------- Clients ---------- */
+  document.getElementById('clientsTable').innerHTML = CLIENTS.map(function(cn){
+    var loans = LOANS.filter(function(l){ return l.client===cn; });
+    var total = loans.reduce(function(s,l){ return s+l.principal; }, 0);
+    return '<tr><td>'+cn+'</td><td class="num">'+loans.length+'</td><td class="num">'+money(total)+'</td><td><span class="sheet-chip">📄 '+cn.split(' ')[0]+' — Loan Tracker</span></td></tr>';
+  }).join('');
+
+  /* ---------- init ---------- */
+  renderReconTabs();
+  runRecon();
+  openLoan(0);
+  openNav('intake');
+
+  var syncedAt = Date.now();
+  setInterval(function(){
+    var s = Math.floor((Date.now()-syncedAt)/1000);
+    var el = document.getElementById('syncTimer');
+    if(el) el.textContent = 'synced ' + (s<60 ? s+'s ago' : Math.floor(s/60)+'m ago');
+  }, 1000);
+  setInterval(function(){ syncedAt = Date.now(); }, 20000);
+</script>
